@@ -110,6 +110,16 @@ static inline int gpio_at32_configure(const struct device *port, gpio_pin_t pin,
 		init_config.gpio_mode = GPIO_MODE_ANALOG;
 	}
 
+#if defined(CONFIG_SOC_SERIES_AT32F403A_407)
+	/* F403A/407 HAL pull enums conflict with Zephyr's GPIO_PULL_* macros. */
+	if ((flags & GPIO_PULL_UP) != 0U) {
+		init_config.gpio_pull = (gpio_pull_type)0x18;
+	} else if ((flags & GPIO_PULL_DOWN) != 0U) {
+		init_config.gpio_pull = (gpio_pull_type)0x28;
+	} else {
+		init_config.gpio_pull = (gpio_pull_type)0x04;
+	}
+#else
 	if ((flags & GPIO_PULL_UP) != 0U) {
 		init_config.gpio_pull = AT32_PULL_UP;
 	} else if ((flags & GPIO_PULL_DOWN) != 0U) {
@@ -117,6 +127,7 @@ static inline int gpio_at32_configure(const struct device *port, gpio_pin_t pin,
 	} else {
 		init_config.gpio_pull = AT32_PULL_NONE;
 	}
+#endif
 
 	gpio_init(gpio, &init_config);
 	return 0;
